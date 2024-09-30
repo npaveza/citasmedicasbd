@@ -68,19 +68,19 @@ public class Citamedicabd extends RepresentationModel<Citamedicabd>{
         this.id = id;
     }
 
-    public void setNombreProducto(String paciente){
+    public void setPaciente(String paciente){
         this.paciente = paciente;
     }
 
-    public void setDestino(String doctor){
+    public void setDoctor(String doctor){
         this.doctor = doctor;
     }
 
-    public void setUbicacionActual(LocalDateTime fechaHora){
+    public void setFechaHora(LocalDateTime fechaHora){
         this.fechaHora = fechaHora;
     }
 
-    public void setEstadoEnvio(String especialidad){
+    public void setEspecialidad(String especialidad){
         this.especialidad = especialidad;
     }
 }
