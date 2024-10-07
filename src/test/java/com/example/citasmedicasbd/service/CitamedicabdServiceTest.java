@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,68 +20,115 @@ import com.example.citasmedicasbd.repository.CitamedicabdRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class CitamedicabdServiceTest {
+
     @InjectMocks
     private CitamedicabdServiceImpl citamedicabdService;
 
     @Mock
     private CitamedicabdRepository citamedicabdRepositoryMock;
 
+    private Citamedicabd cita1, cita2, cita3;
+
     @BeforeEach
     public void setUp() {
-        Citamedicabd citamedicabd = new Citamedicabd();
-        citamedicabd.setId(1L);
-        citamedicabd.setPaciente("Prueba Paciente");
-        citamedicabd.setDoctor("Prueba Doctor");
+        // Creación de la primera cita (ID: 1)
+        cita1 = new Citamedicabd();
+        cita1.setId(1L);
+        cita1.setPaciente("Paciente 1");
+        cita1.setDoctor("Doctor 1");
+        cita1.setFechaHora(LocalDateTime.parse("2024-09-30T15:30:00"));
+        cita1.setEspecialidad("Especialidad 1");
 
-        // String con la fecha y hora en formato ISO-8601
-        String fechaHoraStr = "2024-09-30T15:30:00";
-        try {
-            // Convertir el String a LocalDateTime
-            LocalDateTime fechaHora = LocalDateTime.parse(fechaHoraStr);
-            // Establecer la fecha y hora en la entidad citamedicabd
-            citamedicabd.setFechaHora(fechaHora);
-        } catch (DateTimeParseException e) {
-            System.out.println("Error al parsear la fecha y hora: " + e.getMessage());
-        }
-        citamedicabd.setEspecialidad("Prueba Especialidad");
+        // Creación de la segunda cita (ID: 2)
+        cita2 = new Citamedicabd();
+        cita2.setId(2L);
+        cita2.setPaciente("Paciente 2");
+        cita2.setDoctor("Doctor 2");
+        cita2.setFechaHora(LocalDateTime.parse("2024-10-01T10:00:00"));
+        cita2.setEspecialidad("Especialidad 2");
+
+        // Creación de la tercera cita (ID: 3)
+        cita3 = new Citamedicabd();
+        cita3.setId(3L);
+        cita3.setPaciente("Paciente 3");
+        cita3.setDoctor("Doctor 3");
+        cita3.setFechaHora(LocalDateTime.parse("2024-10-02T14:00:00"));
+        cita3.setEspecialidad("Especialidad 3");
     }
 
     @AfterEach
     public void tearDown() {
-        Citamedicabd citamedicabd = null; // Liberar recursos si es necesario (en este caso solo limpiamos la referencia)
+        cita1 = cita2 = cita3 = null;
     }
 
     @Test
-    public void guardaCitaTest(){
-        Citamedicabd citamedicabd = new Citamedicabd();
-        // String con la fecha y hora en formato ISO-8601
-        String fechaHoraStr = "2024-09-30T15:30:00";
+    public void guardaCitaTest() {
+        when(citamedicabdRepositoryMock.findById(1L)).thenReturn(Optional.empty());
+        when(citamedicabdRepositoryMock.save(any())).thenReturn(cita1);
 
-        citamedicabd.setId(1L);
-        citamedicabd.setPaciente("Prueba Paciente");
-        citamedicabd.setDoctor("Prueba Doctor");
-        try {
-            // Convertir el String a LocalDateTime
-            LocalDateTime fechaHora = LocalDateTime.parse(fechaHoraStr);
-            
-            // Establecer la fecha y hora en la entidad citamedicabd
-            citamedicabd.setFechaHora(fechaHora);
-        } catch (DateTimeParseException e) {
-            System.out.println("Error al parsear la fecha y hora: " + e.getMessage());
+        if (citamedicabdRepositoryMock.findById(1L).isEmpty()) {
+            Citamedicabd resultado1 = citamedicabdService.createCita(cita1);
+
+            assertNotNull(resultado1.getId());
+            assertEquals("Paciente 1", resultado1.getPaciente());
+            assertEquals("Doctor 1", resultado1.getDoctor());
+            assertNotNull(resultado1.getFechaHora());
+            assertEquals("Especialidad 1", resultado1.getEspecialidad());
+
+            verify(citamedicabdRepositoryMock, times(1)).save(cita1);
         }
-        citamedicabd.setEspecialidad("Prueba Especialidad");
 
+        when(citamedicabdRepositoryMock.save(any())).thenReturn(cita2);
+        Citamedicabd resultado2 = citamedicabdService.createCita(cita2);
 
-        when(citamedicabdRepositoryMock.save(any())).thenReturn(citamedicabd);
+        assertNotNull(resultado2.getId());
+        assertEquals("Paciente 2", resultado2.getPaciente());
+        assertEquals("Doctor 2", resultado2.getDoctor());
+        assertNotNull(resultado2.getFechaHora());
+        assertEquals("Especialidad 2", resultado2.getEspecialidad());
 
-        Citamedicabd resultado = citamedicabdService.createCita(citamedicabd);
+        when(citamedicabdRepositoryMock.save(any())).thenReturn(cita3);
+        Citamedicabd resultado3 = citamedicabdService.createCita(cita3);
 
-        assertNotNull(resultado.getId());
-        assertEquals("Prueba Paciente", resultado.getPaciente());
-        assertEquals("Prueba Doctor", resultado.getDoctor());
-        assertNotNull(resultado.getFechaHora());
-        assertEquals("Prueba Especialidad", resultado.getEspecialidad());
+        assertNotNull(resultado3.getId());
+        assertEquals("Paciente 3", resultado3.getPaciente());
+        assertEquals("Doctor 3", resultado3.getDoctor());
+        assertNotNull(resultado3.getFechaHora());
+        assertEquals("Especialidad 3", resultado3.getEspecialidad());
+    }
 
-        verify(citamedicabdRepositoryMock, times(1)).save(any());
+    @Test
+    public void modificaCitaTest() {
+    if (citamedicabdRepositoryMock.findById(2L).isPresent()) {
+        cita2.setPaciente("Paciente 2 Modificado");
+        cita2.setDoctor("Doctor 2 Modificado");
+
+        when(citamedicabdRepositoryMock.save(any(Citamedicabd.class))).thenReturn(cita2);
+
+        when(citamedicabdService.updateCita(2L, cita2)).thenReturn(cita2);
+
+        Citamedicabd resultado = citamedicabdService.updateCita(2L, cita2);
+
+        assertNotNull(resultado, "El resultado no debería ser null");
+        assertEquals("Paciente 2 Modificado", resultado.getPaciente());
+        assertEquals("Doctor 2 Modificado", resultado.getDoctor());
+
+        // Verificar que se llamó al método save una vez
+        verify(citamedicabdRepositoryMock, times(1)).save(cita2);
+        }
+    }
+
+    @Test
+    public void eliminaCitaTest() {
+        // Simulación de encontrar cita con ID 3
+        when(citamedicabdRepositoryMock.findById(3L)).thenReturn(Optional.of(cita3));
+
+        if (citamedicabdRepositoryMock.findById(3L).isPresent()) {
+            doNothing().when(citamedicabdRepositoryMock).deleteById(3L);
+
+            citamedicabdService.deleteCita(3L);
+
+            verify(citamedicabdRepositoryMock, times(1)).deleteById(3L);
+        }
     }
 }
